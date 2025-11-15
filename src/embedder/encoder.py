@@ -11,9 +11,18 @@ class TransactionEmbedder:
     """Encode transactions into sentence embeddings."""
 
     def __init__(self, model_name: str | None = None):
+        # Prefer explicit param, then EMBEDDING_MODEL, then MODEL_PATH
         if model_name is None:
-            model_name = os.getenv("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
-        self.model = SentenceTransformer(model_name)
+            model_name = os.getenv("EMBEDDING_MODEL") or os.getenv("MODEL_PATH") or "sentence-transformers/all-MiniLM-L6-v2"
+        # Allow local directory fallback to support offline environments
+        try:
+            self.model = SentenceTransformer(model_name)
+        except Exception as e:
+            alt = os.getenv("MODEL_PATH")
+            if alt and alt != model_name:
+                self.model = SentenceTransformer(alt)
+            else:
+                raise e
         self.dimension = self.model.get_sentence_embedding_dimension()
 
     def encode_transaction(self, merchant: str, amount: float | None = None, description: str | None = None) -> np.ndarray:

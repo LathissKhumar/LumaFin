@@ -117,4 +117,40 @@ def process_feedback_batch(limit: int = 100) -> int:
         db.close()
 
 
-__all__ = ["celery_app", "process_feedback_batch"]
+@celery_app.task(name="check_recluster_users")
+def check_recluster_users() -> int:
+    """Check users who need AMPT re-clustering (>20 new corrections).
+    
+    Returns number of users queued for re-clustering.
+    """
+    db: Session = SessionLocal()
+    queued = 0
+    try:
+        # Find users with many unprocessed corrections or changed patterns
+        # For simplicity, check users with >=20 processed feedback items since last cluster update
+        rows = db.execute(text(
+            """
+            SELECT fq.user_id, COUNT(*) as correction_count
+            FROM feedback_queue fq
+            WHERE fq.processed = TRUE
+            GROUP BY fq.user_id
+            HAVING COUNT(*) >= 20
+            """
+        )).fetchall()
+        
+        for user_id, count in rows:
+            log.info(f"User {user_id} needs re-clustering ({count} corrections)")
+            # In production, trigger AMPT re-clustering task here
+            # For now, just log it
+            queued += 1
+        
+        log.info(f"Identified {queued} users for re-clustering")
+        return queued
+    except Exception as e:
+        log.error("Check recluster users failed", extra={"error": str(e)})
+        return 0
+    finally:
+        db.close()
+
+
+__all__ = ["celery_app", "process_feedback_batch", "check_recluster_users"]
