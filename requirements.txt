@@ -1,0 +1,48 @@
+# Core numerical libraries (pre-built wheels)
+numpy
+scipy
+scikit-learn
+pandas
+
+# PyTorch CPU
+torch
+torchvision
+torchaudio
+
+# ML/AI libraries
+sentence-transformers
+transformers
+faiss-cpu
+# hdbscan  # Requires C++ compiler, we'll use sklearn.cluster.DBSCAN or install later
+xgboost
+shap
+
+# Web framework
+fastapi
+uvicorn[standard]
+python-multipart
+
+# Database
+psycopg2-binary
+pgvector
+sqlalchemy
+
+# Task queue
+celery
+redis
+
+# Data validation
+pydantic
+pydantic-settings
+
+# Auth
+python-jose[cryptography]
+passlib[bcrypt]
+
+# UI
+streamlit
+plotly
+
+# Utilities
+pyyaml
+python-dotenv
