@@ -1,0 +1,50 @@
+rules:
+  - pattern: '(?i)netflix|hulu|spotify|disney\+'
+    category: 'Entertainment'
+    priority: 100
+    description: 'Streaming services'
+
+  - pattern: '(?i)whole foods|kroger|safeway|trader joe'
+    category: 'Food & Dining'
+    priority: 100
+    description: 'Grocery stores'
+
+  - pattern: '(?i)shell|chevron|exxon|bp gas'
+    category: 'Transportation'
+    priority: 100
+    description: 'Gas stations'
+
+  - pattern: '(?i)atm withdrawal|atm fee'
+    category: 'Cash'
+    priority: 90
+    description: 'ATM transactions'
+
+  - pattern: '(?i)amazon|amazon\.com|amzn'
+    category: 'Shopping'
+    priority: 80
+    description: 'Amazon purchases'
+
+  - pattern: '(?i)starbucks|dunkin|tim hortons'
+    category: 'Food & Dining'
+    priority: 80
+    description: 'Coffee shops'
+
+  - pattern: '(?i)uber|lyft|taxi'
+    category: 'Transportation'
+    priority: 80
+    description: 'Ride sharing'
+
+  - pattern: '(?i)walmart|target|costco'
+    category: 'Shopping'
+    priority: 70
+    description: 'Big box retailers'
+
+  - pattern: '(?i)paypal|venmo|zelle'
+    category: 'Transfer'
+    priority: 70
+    description: 'Money transfer services'
+
+  - pattern: '(?i)electric|gas|water|internet|cable'
+    category: 'Bills & Utilities'
+    priority: 60
+    description: 'Utility payments'
