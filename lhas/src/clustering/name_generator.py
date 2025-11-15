@@ -1,1 +1,0 @@
-"""Cluster name generator module."""

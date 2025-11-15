@@ -1,1 +1,0 @@
--- LumaFin database schema

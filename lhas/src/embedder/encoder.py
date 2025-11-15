@@ -1,1 +1,0 @@
-"""Embedding encoder module."""

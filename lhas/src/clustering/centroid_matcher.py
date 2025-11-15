@@ -1,1 +1,0 @@
-"""Centroid matcher module."""

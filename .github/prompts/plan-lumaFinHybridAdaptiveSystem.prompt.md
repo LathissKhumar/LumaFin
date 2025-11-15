@@ -58,12 +58,12 @@ Current design provides SHAP attributions for reranker, nearest examples for ret
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                         API GATEWAY                              │
-│              (FastAPI, Auth, Rate Limiting)                      │
+│                         API GATEWAY                             │
+│              (FastAPI, Auth, Rate Limiting)                     │
 └────────────┬────────────────────────────────────────────────────┘
              │
    ┌─────────┴──────────┐
-   │                     │
+   │                    │
 ┌──▼─────────────┐  ┌───▼────────────────┐
 │  USER SERVICE  │  │ TRANSACTION INPUT  │
 │  (Profile/Auth)│  │  (Preprocessing)   │
