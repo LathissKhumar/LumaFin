@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lumafin-celery
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lumafin-celery
+  template:
+    metadata:
+      labels:
+        app: lumafin-celery
+    spec:
+      containers:
+      - name: celery
+        image: lumafin/celery:latest
+        envFrom:
+        - configMapRef:
+            name: lumafin-config
+        - secretRef:
+            name: lumafin-secrets

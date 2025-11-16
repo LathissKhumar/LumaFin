@@ -1,0 +1,67 @@
+{
+  "categories": [
+    {
+      "id": 1,
+      "name": "Food & Dining",
+      "parent": null,
+      "description": "Restaurants, groceries, cafes",
+      "keywords": ["restaurant", "grocery", "cafe", "food", "dining", "coffee"]
+    },
+    {
+      "id": 2,
+      "name": "Transportation",
+      "parent": null,
+      "description": "Gas, parking, public transit",
+      "keywords": ["gas", "uber", "lyft", "taxi", "parking", "transit", "bus", "train"]
+    },
+    {
+      "id": 3,
+      "name": "Shopping",
+      "parent": null,
+      "description": "Retail purchases",
+      "keywords": ["shop", "retail", "mall", "store", "purchase", "clothing", "apparel"]
+    },
+    {
+      "id": 4,
+      "name": "Entertainment",
+      "parent": null,
+      "description": "Movies, games, hobbies",
+      "keywords": ["movie", "cinema", "game", "hobby", "netflix", "hulu", "spotify", "disney+"]
+    },
+    {
+      "id": 5,
+      "name": "Bills & Utilities",
+      "parent": null,
+      "description": "Rent, electricity, internet",
+      "keywords": ["bill", "utility", "rent", "electric", "internet", "water", "phone"]
+    },
+    {
+      "id": 6,
+      "name": "Healthcare",
+      "parent": null,
+      "description": "Medical, pharmacy, insurance",
+      "keywords": ["doctor", "pharmacy", "medicine", "insurance", "hospital", "clinic"]
+    },
+    {
+      "id": 7,
+      "name": "Travel",
+      "parent": null,
+      "description": "Hotels, flights, vacation",
+      "keywords": ["hotel", "flight", "airbnb", "travel", "vacation", "trip"]
+    },
+    {
+      "id": 8,
+      "name": "Income",
+      "parent": null,
+      "description": "Salary, refunds, transfers in",
+      "keywords": ["salary", "payroll", "refund", "deposit", "transfer", "income"]
+    },
+    {
+      "id": 9,
+      "name": "Uncategorized",
+      "parent": null,
+      "description": "Unknown or unclassified",
+      "keywords": ["unknown", "uncategorized", "other"]
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lumafin-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: lumafin-api
+  template:
+    metadata:
+      labels:
+        app: lumafin-api
+    spec:
+      containers:
+      - name: api
+        image: lumafin/api:latest
+        ports:
+        - containerPort: 8000
+        envFrom:
+        - configMapRef:
+            name: lumafin-config
+        - secretRef:
+            name: lumafin-secrets
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lumafin-api
+spec:
+  selector:
+    app: lumafin-api
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000

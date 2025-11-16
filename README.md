@@ -83,6 +83,22 @@ pip install -e .
 pip install -e ".[dev]"
 ```
 
+### 2.1 Prepare datasets (clean and merge)
+
+Clean raw public datasets into the required schema (merchant, amount, category) and merge:
+
+```bash
+# Example: download and clean (requires Kaggle CLI)
+PYTHONPATH=. python scripts/download_and_clean_datasets.py \
+  --dataset <kaggle_owner/dataset_id> \
+  --dataset <another_owner/dataset_id>
+
+# Or clean existing CSV folder(s)
+PYTHONPATH=. python scripts/download_and_clean_datasets.py --input data/raw/my_dataset_folder
+
+# Result: data/merged_training.csv
+```
+
 ### 3. Setup Database
 
 ```bash
@@ -97,7 +113,8 @@ print('✅ Database schema created')
 "
 
 # Load seed data (requires data/global_examples.csv)
-PYTHONPATH=. python scripts/seed_database.py
+# Seed from the cleaned merged dataset
+PYTHONPATH=. python scripts/seed_database.py --csv data/merged_training.csv
 ```
 
 ### 4. Train Models (Optional)
@@ -191,6 +208,36 @@ LumaFin/
 ├── docker-compose.yml
 ├── pyproject.toml
 └── README.md
+
+## Dataset schema requirements
+
+To ensure high-quality training and evaluation, LumaFin expects a minimal schema:
+
+Required columns (strict):
+- merchant: string, short free-text merchant or purchase description (e.g., "Starbucks", "DMart", "pizza order")
+- amount: number (float), transaction amount
+- category: string, one of the canonical categories below; rows with "Uncategorized" are discarded for training
+
+Optional columns (nice-to-have):
+- description: string, additional free-text notes to enrich embeddings
+- date: string (YYYY-MM-DD), optional temporal features
+- currency: 3-letter ISO code
+
+Canonical categories (9):
+- Food & Dining
+- Transportation
+- Shopping
+- Entertainment
+- Bills & Utilities
+- Healthcare
+- Travel
+- Income
+- Uncategorized (not used for training)
+
+Notes:
+- During data cleaning, any dataset without merchant, amount, and category is skipped.
+- Categories are normalized into the canonical 9-category taxonomy above.
+- Rows labeled "Uncategorized" are dropped from the training split.
 ```
 
 ## Configuration

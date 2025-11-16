@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lumafin-streamlit
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lumafin-streamlit
+  template:
+    metadata:
+      labels:
+        app: lumafin-streamlit
+    spec:
+      containers:
+      - name: streamlit
+        image: lumafin/streamlit:latest
+        ports:
+        - containerPort: 8501
+        envFrom:
+        - configMapRef:
+            name: lumafin-config
+        - secretRef:
+            name: lumafin-secrets
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lumafin-streamlit
+spec:
+  selector:
+    app: lumafin-streamlit
+  ports:
+    - protocol: TCP
+      port: 8501
+      targetPort: 8501

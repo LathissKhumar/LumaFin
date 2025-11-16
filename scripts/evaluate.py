@@ -8,6 +8,8 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import json
+import os
 from typing import List
 
 from sqlalchemy import text
@@ -26,19 +28,19 @@ def load_from_db(limit: int = 500) -> List[dict]:
     try:
         rows = db.execute(text(
             """
-            SELECT ge.text, gt.category_name
+            SELECT ge.merchant, ge.amount, gt.category_name
             FROM global_examples ge
-            JOIN global_taxonomy gt ON ge.category_id = gt.category_id
-            ORDER BY ge.example_id
+            JOIN global_taxonomy gt ON ge.category_id = gt.id
+            ORDER BY ge.id
             LIMIT :lim
             """
         ), {"lim": limit}).fetchall()
-        return [{"merchant": r[0], "amount": 0.0, "description": None, "label": r[1]} for r in rows]
+        return [{"merchant": r[0], "amount": float(r[1] or 0.0), "description": None, "label": r[2]} for r in rows]
     finally:
         db.close()
 
 
-def evaluate(items: List[dict], mode: str = "retrieval") -> None:
+def evaluate(items: List[dict], mode: str = "retrieval", output_path: str = "evaluation_results.json") -> None:
     """Evaluate using retrieval baseline, reranker, or full fusion pipeline.
     
     Args:
@@ -93,6 +95,21 @@ def evaluate(items: List[dict], mode: str = "retrieval") -> None:
         print(f"  {c:20s} -> P: {round(m['precision'], 3):<5} R: {round(m['recall'], 3):<5} F1: {round(m['f1'], 3):<5} Support: {m['support']}")
     print(f"{'='*60}\n")
 
+    # Persist results
+    try:
+        payload = {
+            "mode": mode,
+            "macro": metrics.get("macro_avg"),
+            "micro": metrics.get("micro_avg"),
+            "per_class": {k: v for k, v in metrics.items() if k not in ("macro_avg", "micro_avg")},
+            "support_total": sum(v.get("support", 0) for k, v in metrics.items() if k not in ("macro_avg", "micro_avg")),
+        }
+        with open(output_path, "w", encoding="utf-8") as f:
+            json.dump(payload, f, indent=2)
+        print(f"Saved evaluation metrics to {output_path}")
+    except Exception as e:
+        print(f"Failed to write evaluation results: {e}")
+
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
@@ -100,9 +117,10 @@ if __name__ == "__main__":
     ap.add_argument("--limit", type=int, default=500)
     ap.add_argument("--mode", choices=["retrieval", "reranker", "fusion"], default="retrieval",
                     help="Evaluation mode: retrieval (baseline), reranker (with XGBoost), or fusion (full pipeline)")
+    ap.add_argument("--output", default="evaluation_results.json", help="Path to save evaluation JSON")
     args = ap.parse_args()
     if args.source == "db":
         items = load_from_db(args.limit)
     else:
         items = []
-    evaluate(items, mode=args.mode)
+    evaluate(items, mode=args.mode, output_path=args.output)

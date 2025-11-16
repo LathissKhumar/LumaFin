@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: lumafin-config
+data:
+  DATABASE_URL: "postgresql://lumafin:lumafin_password@postgres:5432/lumafin_db"
+  REDIS_URL: "redis://redis:6379/0"
+  MODEL_PATH: "/models/embeddings/lumafin-lacft-v1.0"
+  EMBEDDING_MODEL: "sentence-transformers/all-MiniLM-L6-v2"
+  API_HOST: "0.0.0.0"
+  API_PORT: "8000"
+  CORS_ORIGINS: "http://localhost:3000,http://localhost:8501"
+  CONFIDENCE_HIGH: "0.85"
+  CONFIDENCE_MEDIUM: "0.50"
+  CONFIDENCE_LOW: "0.30"
+  AMPT_MIN_TRANSACTIONS: "50"
+  AMPT_MIN_CLUSTER_SIZE: "5"
+  AMPT_SIMILARITY_THRESHOLD: "0.80"
+  BATCH_SIZE: "32"
+  LEARNING_RATE: "2e-5"
+  EPOCHS: "3"
