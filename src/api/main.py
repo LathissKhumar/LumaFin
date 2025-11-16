@@ -6,6 +6,7 @@ import os
 from dotenv import load_dotenv
 
 from src.models import Transaction, Prediction, Category, Explanation
+from src.preprocessing.normalize import get_time_features, normalize_label
 from src.storage.database import get_db
 from src.embedder.encoder import TransactionEmbedder
 from src.rules.engine import rule_engine
@@ -118,11 +119,26 @@ async def categorize_transaction(
     4. Fallback to "Uncategorized" (confidence < 0.50)
     """
     try:
+        # Compute time features if not provided
+        hour = getattr(transaction, 'hour_of_day', None)
+        weekday = getattr(transaction, 'weekday', None)
+        if hour is None or weekday is None:
+            time_feats = get_time_features(transaction.txn_date)
+            hour = time_feats.get('hour_of_day') or time_feats.get('hour')
+            weekday = time_feats.get('weekday') or time_feats.get('day_of_week')
+        # Normalize user-provided label if present
+        label = transaction.label
+        if label:
+            label = normalize_label(label)
+
         cat, conf, expl_dict = decide({
             "merchant": transaction.merchant,
             "amount": float(transaction.amount),
             "description": transaction.description,
             "user_id": transaction.user_id,
+            "label": label,
+            "hour_of_day": hour,
+            "weekday": weekday,
         })
         explanation = build_explanation(
             decision_path=expl_dict.get("decision_path", "fallback"),
@@ -132,7 +148,11 @@ async def categorize_transaction(
             shap_values=expl_dict.get("feature_importance"),
         )
         category = Category(name=cat, confidence=conf, is_personal=expl_dict.get("decision_path") == "centroid")
-        return Prediction(transaction=transaction, category=category, explanation=explanation)
+        pred = Prediction(transaction=transaction, category=category, explanation=explanation)
+        # Attach label influence if present in explanation
+        pred.predicted_label = expl_dict.get("predicted_label")
+        pred.label_influence = expl_dict.get("label_influence")
+        return pred
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Categorization failed: {str(e)}")
 
@@ -188,13 +208,16 @@ async def submit_feedback(feedback: dict, db: Session = Depends(get_db)):
     """
     try:
         db.execute(text("""
-            INSERT INTO feedback_queue (user_id, transaction_id, predicted_category, correct_category)
-            VALUES (:uid, :tid, :pred, :corr)
+            INSERT INTO feedback_queue (user_id, transaction_id, predicted_category, correct_category, user_label, hour_of_day, weekday)
+            VALUES (:uid, :tid, :pred, :corr, :label, :hour, :weekday)
         """), {
             "uid": feedback.get("user_id"),
             "tid": feedback.get("transaction_id"),
             "pred": feedback.get("predicted_category"),
             "corr": feedback.get("correct_category"),
+            "label": feedback.get("user_label"),
+            "hour": feedback.get("hour_of_day"),
+            "weekday": feedback.get("weekday"),
         })
         db.commit()
         return {"status": "queued"}

@@ -86,7 +86,7 @@ class Reranker:
                 return i
         return len(edges)
 
-    def _features_per_category(self, query_text: str, candidates: List[Dict[str, Any]]) -> Dict[str, List[float]]:
+    def _features_per_category(self, query_text: str, candidates: List[Dict[str, Any]], query_label: str | None = None, hour_of_day: int | None = None, weekday: int | None = None) -> Dict[str, List[float]]:
         """Engineer enhanced features per category from retrieval candidates.
 
         Enhanced features per category (12 total):
@@ -214,6 +214,20 @@ class Reranker:
             else:
                 features[cat].append(0.0)
                 features[cat].append(0.0)
+            # Label-based features (query_label might be None)
+            # label_exact_match (1.0 if candidate label equals query label else 0.0)
+            label_votes = [c.get("label") for c in candidates if c.get("category") == cat and c.get("label")]
+            label_exact_match = 0.0
+            label_vote_fraction = 0.0
+            if query_label:
+                normalized_q_label = query_label.lower().strip()
+                label_matches = [1 for l in label_votes if l and l.lower().strip() == normalized_q_label]
+                if label_votes:
+                    label_vote_fraction = sum(label_matches) / len(label_votes)
+                    if sum(label_matches) > 0:
+                        label_exact_match = 1.0
+            features[cat].append(float(label_exact_match))  # 14: label_exact_match
+            features[cat].append(float(label_vote_fraction))  # 15: label_vote_fraction
 
         return features
 
@@ -356,7 +370,7 @@ class Reranker:
             except Exception:
                 pass
 
-    def rerank(self, query_text: str, candidates: List[Dict[str, Any]]) -> Tuple[str, float, List[Dict[str, Any]]]:
+    def rerank(self, query_text: str, candidates: List[Dict[str, Any]], query_label: str | None = None, hour_of_day: int | None = None, weekday: int | None = None) -> Tuple[str, float, List[Dict[str, Any]]]:
         """Return (category, confidence, enriched_candidates).
 
         candidates item schema expected keys: merchant, amount, category, similarity
@@ -373,7 +387,7 @@ class Reranker:
                 c['ce_score'] = 0.0
 
         # If we have feature-based scorer (XGB), use it; else heuristic
-        feats = self._features_per_category(query_text, candidates)
+        feats = self._features_per_category(query_text, candidates, query_label=query_label, hour_of_day=hour_of_day, weekday=weekday)
         if feats:
             cat, conf = self._xgb_predict(feats)
             return cat, conf, candidates

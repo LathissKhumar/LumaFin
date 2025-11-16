@@ -29,7 +29,10 @@ class RetrievalService:
         merchant: str,
         amount: float | None = None,
         description: str | None = None,
-        k: int = 20
+        k: int = 20,
+        label: str | None = None,
+        hour_of_day: int | None = None,
+        weekday: int | None = None,
     ) -> List[Dict]:
         """
         Retrieve top-k similar transactions.
@@ -47,7 +50,10 @@ class RetrievalService:
         embedding = self.embedder.encode_transaction(
             merchant=merchant,
             amount=amount,
-            description=description
+            description=description,
+            label=label,
+            hour_of_day=hour_of_day,
+            weekday=weekday,
         )
 
         # Query FAISS
@@ -71,6 +77,21 @@ class RetrievalService:
             similarity = result['similarity']
             votes[category] = votes.get(category, 0.0) + similarity
 
+        return votes
+
+    def get_label_votes(self, results: List[Dict]) -> Dict[str, float]:
+        """
+        Aggregate label votes from retrieval results.
+
+        Returns dict mapping label -> weighted vote (sum of similarities).
+        """
+        votes: Dict[str, float] = {}
+        for result in results:
+            label = result.get('label')
+            if not label:
+                continue
+            similarity = result.get('similarity', 0.0)
+            votes[label] = votes.get(label, 0.0) + float(similarity)
         return votes
 
     def predict_from_votes(

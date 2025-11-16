@@ -43,7 +43,7 @@ def fetch_centroids(user_id: int) -> list[dict[str, Any]]:
         db.close()
 
 
-def match_personal_category(user_id: int, embedding: np.ndarray) -> Optional[Dict[str, Any]]:
+def match_personal_category(user_id: int, embedding: np.ndarray, label: str | None = None) -> Optional[Dict[str, Any]]:
     centroids = fetch_centroids(user_id)
     if not centroids:
         return None
@@ -52,6 +52,10 @@ def match_personal_category(user_id: int, embedding: np.ndarray) -> Optional[Dic
     best_sim = -1.0
     for c in centroids:
         sim = cosine(embedding, c["vector"])
+        # If centroid metadata contains a dominant_label and user label matches, boost similarity
+        dom_label = (c.get("metadata") or {}).get("dominant_label")
+        if label and dom_label and label.lower().strip() == dom_label.lower().strip():
+            sim = min(1.0, sim + 0.05)  # small boost
         support = c["metadata"].get("num_transactions", 0) if c.get("metadata") else 0
         if sim > best_sim and sim >= SIMILARITY_THRESHOLD and support >= MIN_SUPPORT:
             best = c

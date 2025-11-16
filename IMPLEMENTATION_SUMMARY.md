@@ -4,6 +4,16 @@
 
 This document summarizes the complete implementation of the LumaFin Hybrid Adaptive System (LHAS) according to the project plan.
 
+## 🗺️ Project Plan & Roadmap (labels + ETA)
+
+This Plan & Roadmap section adds labels and estimated time-to-complete (ETA) values to remaining items and future enhancements. Labels are used to help triage and prioritize work and to map items to teams or owners.
+
+- **Labels**: `priority/high`, `priority/medium`, `priority/low`, `area/reranker`, `area/cluster`, `area/infra`, `area/docs`, `research`, `test`
+- **ETA**: Short estimate for implementation and QA: `1w` = 1 week, `2w` = 2 weeks, `4w` = 4 weeks, `8w` = 8 weeks, etc.
+
+Example usage: `Cross-encoder Integration — label: area/reranker; priority/high; ETA: 3w`
+
+
 ---
 
 ## 📋 Implementation Checklist
@@ -269,19 +279,43 @@ Check if user needs re-clustering (≥20 corrections) ✅ DONE
 ## 🚧 Remaining Work (5%)
 
 ### High Priority
-- [ ] **Cross-encoder Integration**: Currently using heuristic fallback; add CE scoring in reranker (ms-marco-MiniLM-L-6-v2)
-- [ ] **AMPT Auto-trigger**: Automated re-clustering when check_recluster_users identifies users (currently logs only)
-- [ ] **Test Coverage**: Expand to 70%+ (currently ~40% with test_core.py)
+- [ ] **Cross-encoder Integration** — `label: area/reranker; priority/high; ETA: 3w`:
+  - Task: Add cross-encoder scoring (ms-marco-MiniLM-L-6-v2), integrate CE score into reranker features, update training script and inference path `scripts/train_reranker.py`, `src/reranker/model.py`
+  - Tests: Add `tests/test_reranker_crossencoder.py`, update reranker integration tests
+
+- [ ] **AMPT Auto-trigger** — `label: area/cluster; priority/high; ETA: 2w`:
+  - Task: Auto-trigger re-clustering via `check_recluster_users` -> `POST /taxonomy/retrain` or internal task; implement a Celery task to enqueue/execute re-clustering and telemetry.
+  - Tests: Add `tests/test_clustering_auto_retrain.py` and update `tests/test_integration.py` to confirm scheduled run behavior
+
+- [ ] **Test Coverage** — `label: test; priority/high; ETA: 4w`:
+  - Task: Expand unit & integration test coverage to ≥70%; add focused tests for edge cases, false positives/negatives, feedback loop, reranker CE, and API endpoints.
+  - Tests: Add new tests below (detailed in tests_to_add in PR JSON)
 
 ### Medium Priority
-- [ ] **Knowledge Graph**: Neo4j for merchant relationships and category ontology
-- [ ] **Fairness Metrics**: Demographic parity, group F1 variance by amount buckets
-- [ ] **Federated Learning**: Proof-of-concept with PySyft/TenSEAL
+- [ ] **Knowledge Graph** — `label: research; area/infra; priority/medium; ETA: 8w`:
+  - Task: Plan/POC for merchant/merchant relationships in Neo4j or RDF store; ingestion adapter + query endpoints; prepare sample queries for explainability.
+  - Tests: Add `tests/test_knowledge_graph.py`
+
+- [ ] **Fairness Metrics** — `label: area/metrics; priority/medium; ETA: 4w`:
+  - Task: Add fairness metrics computation (demographic parity, group F1 by buckets) and expose via `metrics` endpoints; add evaluation slots to `scripts/evaluate.py`.
+  - Tests: Add `tests/test_fairness_metrics.py`
+
+- [ ] **Federated Learning** — `label: research; priority/medium; ETA: 12w`:
+  - Task: POC federated training (PySyft/TenSEAL), outline privacy-preserving collection and model aggregation; POC must not yet be production-level.
+  - Tests: Add POC tests and integration validation.
 
 ### Low Priority
-- [ ] **Multi-tenancy**: User isolation, per-org models
-- [ ] **Advanced Active Learning**: Representativeness sampling via k-means diversity
-- [ ] **Prometheus Integration**: Full metrics export at `/metrics`
+- [ ] **Multi-tenancy** — `label: area/infra; priority/low; ETA: 6w`:
+  - Task: Architect per-org isolation, configs, and model selection; data partitioning and required migrations for multi-tenant identification.
+  - Tests: Add `tests/test_multitenancy_isolation.py`
+
+- [ ] **Advanced Active Learning** — `label: research; area/training; priority/low; ETA: 8w`:
+  - Task: Add representativeness-based sampling, diversity-driven queue for active-learning labeling; integrate to active_learning.py
+  - Tests: Add `tests/test_active_learning_sampling.py`
+
+- [ ] **Prometheus Integration** — `label: area/infra; priority/low; ETA: 2w`:
+  - Task: Add metrics endpoint `/metrics`, instrument core endpoints & tasks; add a quick Grafana dashboard example.
+  - Tests: Add `tests/test_metrics_endpoint.py`
 
 ---
 
@@ -449,5 +483,5 @@ PYTHONPATH=. streamlit run demo/streamlit_app.py
 
 ---
 
-*Last updated: 2025-11-15*
+*Last updated: 2025-11-16*
 *Completion: 95% (fully operational, production-ready)*

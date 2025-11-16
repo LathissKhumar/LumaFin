@@ -120,20 +120,21 @@ class RuleEngine:
             print(f"Warning: Could not load YAML rules: {e}")
             return []
 
-    def apply_rules(self, merchant: str, amount: Optional[float] = None) -> Optional[RuleResult]:
+    def apply_rules(self, merchant: str, amount: Optional[float] = None, label: Optional[str] = None) -> Optional[RuleResult]:
         """
         Apply rules to a merchant name.
 
         Returns Category with confidence=1.0 if rule matches, None otherwise.
         """
         # Normalize merchant for matching
-        from src.preprocessing.normalize import normalize_merchant
+        from src.preprocessing.normalize import normalize_merchant, normalize_label
         normalized_merchant = normalize_merchant(merchant)
 
-        # Try each rule in priority order
+        # Try each rule in priority order - match against merchant and optionally label
         for rule in self.rules_cache:
             try:
                 pattern = rule['pattern']
+                # If merchant matches, apply rule
                 if re.search(pattern, normalized_merchant):
                     return RuleResult(
                         name=rule['category'],
@@ -141,6 +142,16 @@ class RuleEngine:
                         pattern=pattern,
                         confidence=1.0,
                     )
+                # If label present, try matching label
+                if label:
+                    normalized_label = normalize_label(label)
+                    if re.search(pattern, normalized_label):
+                        return RuleResult(
+                            name=rule['category'],
+                            priority=rule.get('priority', 1),
+                            pattern=pattern,
+                            confidence=1.0,
+                        )
             except re.error as e:
                 print(f"Warning: Invalid regex pattern '{pattern}': {e}")
                 continue

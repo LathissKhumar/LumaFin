@@ -15,6 +15,11 @@ class Transaction(BaseModel):
     txn_date: date = Field(..., alias="date", description="Transaction date")
     description: Optional[str] = Field(None, description="Additional description")
     user_id: Optional[int] = Field(None, description="User ID for personalization")
+    # Optional user-provided short label (single word or short phrase)
+    label: Optional[str] = Field(None, description="User-provided short label for transaction")
+    # Optional time-of-payment features (computed from date) if provided server-side
+    hour_of_day: Optional[int] = Field(None, description="Hour of payment (0-23)")
+    weekday: Optional[int] = Field(None, description="0=Mon..6=Sun")
 
 
 class Category(BaseModel):
@@ -39,6 +44,9 @@ class Prediction(BaseModel):
     category: Category
     explanation: Explanation
     timestamp: datetime = Field(default_factory=datetime.utcnow)
+    # Optionally include the label influence score for explainability
+    predicted_label: Optional[str] = None
+    label_influence: Optional[float] = None
 
 
 class FeedbackInput(BaseModel):

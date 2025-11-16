@@ -40,6 +40,19 @@ def normalize_merchant(merchant: str) -> str:
     
     return merchant
 
+
+def normalize_label(label: str) -> str:
+    """
+    Normalize a short user-provided label: lowercase, remove punctuation and extra whitespace.
+    """
+    if label is None:
+        return ""
+    l = label.lower().strip()
+    # Remove special characters but keep spaces and alphanumerics
+    l = re.sub(r"[^a-z0-9\s]", " ", l)
+    l = ' '.join(l.split())
+    return l
+
 def bucket_amount(amount: float) -> str:
     """Bucket transaction amount into ranges"""
     if amount < 10:
@@ -55,8 +68,22 @@ def bucket_amount(amount: float) -> str:
 
 def get_time_features(date) -> Dict[str, int]:
     """Extract time-based features"""
+    hour = 12
+    dow = 0
+    if hasattr(date, 'hour'):
+        try:
+            hour = int(date.hour)
+        except Exception:
+            hour = 12
+    if hasattr(date, 'weekday'):
+        try:
+            dow = int(date.weekday())
+        except Exception:
+            dow = 0
     return {
-        "hour": date.hour if hasattr(date, 'hour') else 12,
-        "day_of_week": date.weekday(),
-        "is_weekend": 1 if date.weekday() >= 5 else 0,
+        "hour": hour,
+        "hour_of_day": hour,
+        "weekday": dow,
+        "day_of_week": dow,
+        "is_weekend": 1 if dow >= 5 else 0,
     }

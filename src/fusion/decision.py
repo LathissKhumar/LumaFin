@@ -33,23 +33,26 @@ def decide(txn: Dict[str, Any]) -> Tuple[str, float, Dict[str, Any]]:
 
     txn keys: merchant, amount, description(optional), user_id(optional)
     """
-    merchant = txn["merchant"]
-    amount = float(txn["amount"]) if txn.get("amount") is not None else 0.0
+    merchant = txn.get("merchant")
+    amount = float(txn.get("amount")) if txn.get("amount") is not None else 0.0
     description = txn.get("description")
     user_id = txn.get("user_id")
+    label = txn.get("label")
+    hour_of_day = txn.get("hour_of_day")
+    weekday = txn.get("weekday")
 
     # 1) Rules
-    rule_result = rule_engine.apply_rules(merchant, amount)
+    rule_result = rule_engine.apply_rules(merchant, amount, label=label)
     if rule_result:
         log.info("Rule match", extra={"rule": rule_result.name})
         return rule_result.name, 1.0, {"decision_path": "rule", "rule_matched": rule_result.name}
 
     # Embed once
-    emb = _embedder.encode_transaction(merchant=merchant, amount=amount, description=description)
+    emb = _embedder.encode_transaction(merchant=merchant, amount=amount, description=description, label=label, hour_of_day=hour_of_day, weekday=weekday)
 
     # 2) Personal centroids
     if user_id is not None:
-        personal = match_personal_category(user_id, emb)
+        personal = match_personal_category(user_id, emb, label=label)
         if personal:
             conf = _scale_centroid_conf(personal["similarity"]) 
             log.info("Centroid match", extra={"user_id": user_id, "category": personal["category"], "sim": round(personal["similarity"], 4)})
@@ -59,7 +62,21 @@ def decide(txn: Dict[str, Any]) -> Tuple[str, float, Dict[str, Any]]:
     try:
         results = _retrieval.retrieve_by_embedding(emb, k=20)
         if results:
-            cat, conf, enriched = _reranker.rerank(merchant, results)
+            # Compose a richer query text including label and time tokens for CE and reranker
+            query_text = merchant
+            if label:
+                query_text = f"{query_text} label:{label}"
+            if hour_of_day is not None:
+                query_text = f"{query_text} hour:{hour_of_day}"
+            if weekday is not None:
+                query_text = f"{query_text} weekday:{weekday}"
+            cat, conf, enriched = _reranker.rerank(query_text, results, query_label=label, hour_of_day=hour_of_day, weekday=weekday)
+            # Compute label vote distribution & label influence if label is present
+            label_votes = _retrieval.get_label_votes(results)
+            label_influence = 0.0
+            if label and label_votes:
+                total = sum(label_votes.values())
+                label_influence = label_votes.get(label, 0.0) / total if total > 0 else 0.0
             return cat, conf, {"decision_path": "retrieval", "nearest_examples": [
                 {
                     "merchant": r.get("merchant"),
@@ -67,7 +84,7 @@ def decide(txn: Dict[str, Any]) -> Tuple[str, float, Dict[str, Any]]:
                     "category": r.get("category"),
                     "similarity": r.get("similarity"),
                 } for r in enriched[:3]
-            ]}
+            ], "label_votes": label_votes, "label_influence": label_influence}
     except Exception as e:
         log.error("Retrieval/rerank failed", extra={"error": str(e)})
 

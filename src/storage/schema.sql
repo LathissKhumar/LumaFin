@@ -17,7 +17,10 @@ CREATE TABLE IF NOT EXISTS transactions (
     amount DECIMAL(10, 2) NOT NULL,
     date DATE NOT NULL,
     description TEXT,
+    label VARCHAR(200),
     category VARCHAR(100),
+    hour_of_day SMALLINT,
+    weekday SMALLINT,
     embedding vector(384),  -- all-MiniLM-L6-v2 produces 384-dim vectors
     confidence FLOAT,
     is_personal_category BOOLEAN DEFAULT FALSE,
@@ -58,6 +61,9 @@ CREATE TABLE IF NOT EXISTS global_examples (
     merchant TEXT NOT NULL,
     amount DECIMAL(10, 2),
     description TEXT,
+    label VARCHAR(200),
+    hour_of_day SMALLINT,
+    weekday SMALLINT,
     category_id INTEGER REFERENCES global_taxonomy(id),
     embedding vector(384),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -83,6 +89,9 @@ CREATE TABLE IF NOT EXISTS feedback_queue (
     transaction_id INTEGER REFERENCES transactions(id),
     old_category VARCHAR(100),
     new_category VARCHAR(100) NOT NULL,
+    user_label VARCHAR(200),
+    hour_of_day SMALLINT,
+    weekday SMALLINT,
     processed BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
