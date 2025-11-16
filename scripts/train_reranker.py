@@ -7,12 +7,12 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import os
 from typing import List, Dict, Any
 
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 import csv
-import os
 
 from src.storage.database import SessionLocal
 from src.embedder.encoder import TransactionEmbedder
@@ -20,6 +20,9 @@ from src.retrieval.service import get_retrieval_service
 from src.reranker.model import get_reranker
 from src.utils.logger import get_logger
 
+
+# Disable tokenizers parallelism to avoid warnings
+os.environ['TOKENIZERS_PARALLELISM'] = 'false'
 
 log = get_logger("train_reranker")
 

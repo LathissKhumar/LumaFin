@@ -1,0 +1,52 @@
+{
+  "mode": "fusion",
+  "macro": {
+    "precision": 0.9907407407407408,
+    "recall": 0.9946236559139785,
+    "f1": 0.9925058548009368
+  },
+  "micro": {
+    "precision": 0.99,
+    "recall": 0.99,
+    "f1": 0.99
+  },
+  "per_class": {
+    "Bills & Utilities": {
+      "precision": 0.9444444444444444,
+      "recall": 1.0,
+      "f1": 0.9714285714285714,
+      "support": 17
+    },
+    "Entertainment": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 4
+    },
+    "Food & Dining": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 39
+    },
+    "Healthcare": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 7
+    },
+    "Transportation": {
+      "precision": 1.0,
+      "recall": 0.967741935483871,
+      "f1": 0.9836065573770492,
+      "support": 31
+    },
+    "Travel": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 2
+    }
+  },
+  "support_total": 100
+}

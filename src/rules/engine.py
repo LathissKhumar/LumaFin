@@ -1,10 +1,19 @@
 import re
 import yaml
 from typing import List, Dict, Optional, Tuple
+from dataclasses import dataclass
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from src.storage.database import get_db
 from src.models import Category
+
+@dataclass
+class RuleResult:
+    name: str
+    priority: int
+    pattern: str
+    confidence: float = 1.0
+
 
 class RuleEngine:
     """
@@ -111,7 +120,7 @@ class RuleEngine:
             print(f"Warning: Could not load YAML rules: {e}")
             return []
 
-    def apply_rules(self, merchant: str, amount: Optional[float] = None) -> Optional[Category]:
+    def apply_rules(self, merchant: str, amount: Optional[float] = None) -> Optional[RuleResult]:
         """
         Apply rules to a merchant name.
 
@@ -126,10 +135,11 @@ class RuleEngine:
             try:
                 pattern = rule['pattern']
                 if re.search(pattern, normalized_merchant):
-                    return Category(
+                    return RuleResult(
                         name=rule['category'],
+                        priority=rule.get('priority', 1),
+                        pattern=pattern,
                         confidence=1.0,
-                        is_personal=False
                     )
             except re.error as e:
                 print(f"Warning: Invalid regex pattern '{pattern}': {e}")

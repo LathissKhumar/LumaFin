@@ -97,10 +97,27 @@ class TestReranker:
         assert abs(food_feats[2] - 0.9) < 0.01  # max
         assert abs(food_feats[3] - 0.85) < 0.01  # mean
         assert abs(food_feats[5] - 2/3) < 0.01  # vote fraction
+        # Check that additional features exist and have expected types
+        assert len(food_feats) == 14
+        # Top-3 similarity sum should be 0.9 + 0.8 = 1.7 (since only 2 food candidates)
+        assert abs(food_feats[11] - 1.7) < 0.01
         
         # Transport should have: count=1
         transport_feats = feats["Transport"]
         assert transport_feats[0] == 1.0
+        assert len(transport_feats) == 14
+
+    def test_xgb_fallback_scoring(self):
+        """Test that _xgb_predict fallback uses enhanced scoring to pick category."""
+        reranker = Reranker()
+        # Create two category feature sets: A has higher max_similarity and merchant_sim
+        feats = {
+            "CatA": [2.0, 1.5, 0.9, 0.75, 0.6, 0.6, 0.0, 0.9, 0.0, 10.0, 0.05, 1.7, 0.8, 0.7],
+            "CatB": [3.0, 1.8, 0.4, 0.6, 0.2, 0.75, 0.0, 0.1, 0.0, 20.0, 0.25, 1.1, 0.05, 0.04],
+        }
+        cat, conf = reranker._xgb_predict(feats)
+        assert cat == "CatA"
+        assert 0.0 <= conf <= 1.0
 
 
 class TestEmbedder:

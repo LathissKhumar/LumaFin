@@ -1,6 +1,6 @@
 # LumaFin Hybrid Adaptive System (LHAS) – Production AI Transaction Categorization
 
-Build a production-grade transaction categorization engine that fuses **global ML classification** (Label-Aware Contrastive Fine-Tuning, FAISS retrieval, reranker) with **AMPT's user-specific clustering engine** (personalized micro-categories), **rule-based overrides**, and **comprehensive explainability**. Start as modular monolith with microservice boundaries, implement hierarchical decision pipeline (Rules → Personal Centroids → Retrieval+Rerank → Fallback), enable continuous learning via feedback loop, and maintain privacy-first architecture with federated learning readiness.
+Build a production-grade transaction categorization engine that fuses **global ML classification** (Label-Aware Contrastive Fine-Tuning, FAISS retrieval, reranker) with **AMPT's user-specific clustering engine** (personalized micro-categories), **rule-based overrides**, and **comprehensive explainability**. Start as modular monolith with microservice boundaries, implement hierarchical decision pipeline (Personal Centroids → Rules → Retrieval+Rerank → Fallback) to prioritize user-specific micro-categories, enable continuous learning via feedback loop, and maintain privacy-first architecture with federated learning readiness.
 
 ## Implementation Steps
 

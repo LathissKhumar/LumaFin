@@ -16,6 +16,7 @@ faiss-cpu
 # hdbscan  # Requires C++ compiler, we'll use sklearn.cluster.DBSCAN or install later
 xgboost
 shap
+optuna
 
 # Web framework
 fastapi

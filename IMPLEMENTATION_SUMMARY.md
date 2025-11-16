@@ -202,10 +202,11 @@ This document summarizes the complete implementation of the LumaFin Hybrid Adapt
 ```
 Input: Transaction (merchant, amount, description, user_id)
   ↓
-[1] Rule Engine Check
-  → If match: Return category (conf=1.0) ✅ DONE
+[1] Personal Centroid Match
+  → If similarity > 0.80 AND support ≥ 5: Return personal category (conf=0.85-0.95) ✅ DONE
   ↓
-[2] Personal Centroid Match
+[2] Rule Engine Check
+  → If match: Return category (conf=1.0) ✅ DONE
   → If similarity > 0.80 AND support ≥ 5: Return personal category (conf=0.85-0.95) ✅ DONE
   ↓
 [3] FAISS Retrieval
@@ -430,7 +431,7 @@ PYTHONPATH=. streamlit run demo/streamlit_app.py
 
 **LumaFin LHAS is 95% complete** and fully functional for production use. The implemented system delivers on all core requirements from the project plan:
 
-- ✅ Hierarchical decision pipeline (Rules → Centroids → Retrieval+Rerank → Fallback)
+- ✅ Hierarchical decision pipeline (Personal Centroids → Rules → Retrieval+Rerank → Fallback)
 - ✅ Personal clustering with AMPT
 - ✅ XGBoost reranker with feature engineering
 - ✅ Label-Aware Contrastive Fine-Tuning

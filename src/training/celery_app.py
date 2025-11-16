@@ -53,7 +53,7 @@ app.conf.beat_schedule = {
     
     # Rebuild FAISS index nightly at 2 AM
     "rebuild-faiss-index": {
-        "task": "src.training.incremental.rebuild_faiss_index",
+        "task": "src.training.incremental.refresh_faiss_index",
         "schedule": crontab(hour=2, minute=0),  # 2:00 AM daily
         "options": {"queue": "training"},
     },

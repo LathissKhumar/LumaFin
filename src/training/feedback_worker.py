@@ -7,7 +7,7 @@ Reads from feedback_queue and applies:
 from __future__ import annotations
 
 import os
-from typing import Dict, Any
+import numpy as np
 from celery import Celery
 from sqlalchemy import text
 from sqlalchemy.orm import Session
