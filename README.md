@@ -50,6 +50,27 @@ Transaction Input
 - Federated learning prototype
 - Advanced fairness metrics
 
+## 🚀 Google Colab Training (No GPU Required!)
+
+**New!** Train models using Google Colab without local GPU:
+
+1. **Quick Start:** Follow [COLAB_QUICK_START.md](COLAB_QUICK_START.md) (1-2 hours)
+2. **Full Guide:** See [colab_notebooks/README.md](colab_notebooks/README.md)
+3. **Hackathon Guide:** Check [HACKATHON_GUIDE.md](HACKATHON_GUIDE.md)
+
+**What you get:**
+- ✅ Fine-tuned embeddings (L-A CFT)
+- ✅ Trained XGBoost reranker
+- ✅ FAISS index with 80k+ vectors
+- ✅ >90% accuracy evaluation
+
+All trained models save to Google Drive and can be integrated using:
+```bash
+python scripts/integrate_colab_models.py --source /path/to/downloaded/models
+```
+
+---
+
 ## Quick Start
 
 ### 1. Prerequisites
