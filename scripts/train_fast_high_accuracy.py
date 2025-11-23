@@ -25,17 +25,12 @@ log = get_logger("fast_training")
 def load_training_data(limit: int = 3000) -> List[Dict[str, Any]]:
     """Load training data from database."""
     from sqlalchemy import text
+    from src.storage.database import sample_random_examples
     from sqlalchemy.orm import Session
 
     db = SessionLocal()
     try:
-        rows = db.execute(text("""
-            SELECT ge.id, ge.merchant, ge.amount, ge.description, gt.category_name
-            FROM global_examples ge
-            JOIN global_taxonomy gt ON ge.category_id = gt.id
-            ORDER BY RANDOM()
-            LIMIT :lim
-        """), {"lim": limit}).fetchall()
+        rows = sample_random_examples(db, limit=limit, max_attempts=8)
 
         examples = []
         for row in rows:

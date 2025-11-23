@@ -63,6 +63,9 @@ def prepare_training_rows(items: List[Dict[str, Any]], k: int = 20) -> List[Dict
     """
     embedder = TransactionEmbedder()
     retriever = get_retrieval_service()
+    from src.storage.database import SessionLocal, sample_negative_examples
+    from sqlalchemy import text
+    db = SessionLocal()
     
     training_rows = []
     log.info(f"Preparing training rows for {len(items)} items...")
@@ -88,6 +91,28 @@ def prepare_training_rows(items: List[Dict[str, Any]], k: int = 20) -> List[Dict
         # Take top k
         candidates = candidates[:k]
         
+        # Ensure we have some negative candidates; if all candidates match the
+        # true label, sample random negatives from the DB to create negative
+        # examples for training.
+        if candidates and all((c.get('category') == it.get('label')) for c in candidates):
+            try:
+                neg_rows = sample_negative_examples(db, excluded_category_name=it.get('label'), limit=max(1, k), max_attempts=8)
+                for nr in neg_rows:
+                    candidates.append({
+                        'id': nr[0],
+                        'merchant': nr[1],
+                        'amount': float(nr[2]) if nr[2] else 0.0,
+                        'description': nr[3],
+                        'category': nr[4],
+                        'embedding': nr[5],
+                        'similarity': 0.0
+                    })
+                if neg_rows:
+                    log.info(f"Appended {len(neg_rows)} negative candidates for label {it.get('label')}")
+            except Exception:
+                # If DB sampling fails, continue with current candidates
+                pass
+
         if candidates:
             training_rows.append({
                 "query_text": it["merchant"],
@@ -96,6 +121,7 @@ def prepare_training_rows(items: List[Dict[str, Any]], k: int = 20) -> List[Dict
             })
     
     log.info(f"Prepared {len(training_rows)} training rows")
+    db.close()
     return training_rows
 
 def load_from_csv(paths: List[str]) -> List[Dict[str, Any]]:

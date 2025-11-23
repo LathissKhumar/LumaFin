@@ -321,6 +321,18 @@ class Reranker:
             return
         X = np.array(X_list, dtype=float)
         y = np.array(y_list, dtype=int)
+        # If training labels are single-class (all 0 or all 1), skip training
+        unique_vals = set(y.tolist())
+        if len(unique_vals) < 2:
+            import logging
+            logging.getLogger(__name__).warning(
+                "Reranker XGBoost training skipped: single-class labels found in training data: %s",
+                sorted(unique_vals)
+            )
+            # Ensure model remains None and allow fallback heuristic
+            self.xgb_model = None
+            self._is_trained = False
+            return
         # Default, simple params suitable for small data
         default_params = {
             "n_estimators": 200,

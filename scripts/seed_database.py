@@ -215,14 +215,16 @@ def seed_global_examples(csv_path: str = 'data/global_examples.csv'):
         # Prepare data for insertion — normalize CSV categories to canonical ones
         prepared = []
         for ex in examples:
-            norm = normalize_category(ex.get('category'))
+            merchant = ex.get('merchant', '')
+            category = ex.get('category', 'Uncategorized')
+            norm = normalize_category(category, merchant)
             # Only keep examples that map to one of the canonical taxonomy names
             if norm not in category_map:
                 # skip if canonical category somehow missing (shouldn't happen)
                 continue
             cat_id = category_map[norm]
             prepared.append({
-                'merchant': ex['merchant'],
+                'merchant': merchant,
                 'amount': float(ex.get('amount', 0.0)),
                 'category': norm,
                 'category_id': int(cat_id),

@@ -42,14 +42,8 @@ class OptimizedRerankerTrainer:
         """Load and preprocess training data with enhanced features."""
         db: Session = SessionLocal()
         try:
-            rows = db.execute(text("""
-                SELECT ge.id, ge.merchant, ge.amount, ge.description,
-                       gt.category_name
-                FROM global_examples ge
-                JOIN global_taxonomy gt ON ge.category_id = gt.id
-                ORDER BY RANDOM()
-                LIMIT :lim
-            """), {"lim": limit}).fetchall()
+            from src.storage.database import sample_random_examples
+            rows = sample_random_examples(db, limit=limit, max_attempts=8)
 
             examples = []
             for row in rows:

@@ -33,7 +33,7 @@ class FAISSIndexBuilder:
     def load_examples_from_db(self, db: Session) -> Tuple[List[dict], List[np.ndarray]]:
         """Load global examples from database."""
         query = text("""
-            SELECT ge.id, ge.merchant, ge.amount, ge.description, ge.label, ge.hour_of_day, ge.weekday, 
+            SELECT ge.id, ge.merchant, ge.amount, ge.description, 
                    gt.category_name, ge.embedding
             FROM global_examples ge
             JOIN global_taxonomy gt ON ge.category_id = gt.id
@@ -50,27 +50,29 @@ class FAISSIndexBuilder:
                 'merchant': row[1],
                 'amount': float(row[2]) if row[2] else 0.0,
                 'description': row[3],
-                'label': row[4],
-                'hour_of_day': int(row[5]) if row[5] is not None else None,
-                'weekday': int(row[6]) if row[6] is not None else None,
-                'category': row[7]
+                'category': row[4]
             }
             examples.append(example)
             
             # If embedding exists in DB, use it; otherwise generate
             if row[5] is not None:
-                # pgvector returns embedding as string like "[0.1, 0.2, ...]"
-                emb = np.array(eval(row[5]), dtype=np.float32)
+                # pgvector returns embedding as bytes - convert to numpy array
+                # Handle both bytes and string representations
+                emb_data = row[5]
+                if isinstance(emb_data, bytes):
+                    emb = np.frombuffer(emb_data, dtype=np.float32)
+                elif isinstance(emb_data, str):
+                    emb = np.array(eval(emb_data), dtype=np.float32)
+                else:
+                    # Already a list or array
+                    emb = np.array(emb_data, dtype=np.float32)
                 embeddings.append(emb)
             else:
                 # Generate embedding
                 emb = self.embedder.encode_transaction(
                     merchant=example['merchant'],
                     amount=example['amount'],
-                    description=example['description'],
-                    label=example.get('label'),
-                    hour_of_day=example.get('hour_of_day'),
-                    weekday=example.get('weekday')
+                    description=example['description']
                 )
                 embeddings.append(emb)
 
@@ -99,9 +101,6 @@ class FAISSIndexBuilder:
         self.category_labels = [ex['category'] for ex in examples]
         self.merchants = [ex['merchant'] for ex in examples]
         self.amounts = [ex['amount'] for ex in examples]
-        self.labels = [ex.get('label') for ex in examples]
-        self.hours = [ex.get('hour_of_day') for ex in examples]
-        self.weekdays = [ex.get('weekday') for ex in examples]
         
         self.index = index
         return index
@@ -130,10 +129,7 @@ class FAISSIndexBuilder:
                     'category': self.category_labels[idx],
                     'merchant': self.merchants[idx],
                     'amount': self.amounts[idx],
-                    'similarity': float(score),
-                    'label': self.labels[idx] if hasattr(self, 'labels') else None,
-                    'hour_of_day': self.hours[idx] if hasattr(self, 'hours') else None,
-                    'weekday': self.weekdays[idx] if hasattr(self, 'weekdays') else None,
+                    'similarity': float(score)
                 })
         
         return results
@@ -152,9 +148,6 @@ class FAISSIndexBuilder:
             'category_labels': self.category_labels,
             'merchants': self.merchants,
             'amounts': self.amounts,
-            'labels': getattr(self, 'labels', None),
-            'hours': getattr(self, 'hours', None),
-            'weekdays': getattr(self, 'weekdays', None),
             'dimension': self.dimension
         }
         with open(metadata_path, 'wb') as f:
@@ -176,9 +169,6 @@ class FAISSIndexBuilder:
         self.category_labels = metadata['category_labels']
         self.merchants = metadata['merchants']
         self.amounts = metadata['amounts']
-        self.labels = metadata.get('labels')
-        self.hours = metadata.get('hours')
-        self.weekdays = metadata.get('weekdays')
         self.dimension = metadata['dimension']
         
         print(f"✓ Loaded index from {index_path}")

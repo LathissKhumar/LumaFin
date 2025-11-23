@@ -14,7 +14,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import f1_score
 
 from src.reranker.model import Reranker
-from src.storage.database import SessionLocal
+from src.storage.database import SessionLocal, sample_random_examples
 from sqlalchemy import text
 import json
 
@@ -56,8 +56,7 @@ def create_training_rows_from_eval(limit_per_cat=200):
 def create_training_rows_from_db(limit: int = 4000):
     db = SessionLocal()
     try:
-        q = text('SELECT ge.id, ge.merchant, ge.amount, ge.description, gt.category_name FROM global_examples ge JOIN global_taxonomy gt ON ge.category_id = gt.id ORDER BY RANDOM() LIMIT :lim')
-        rows = db.execute(q, {'lim': limit})
+        rows = sample_random_examples(db, limit=limit, max_attempts=8)
         examples = []
         for id_, merchant, amount, desc, cat in rows:
             candidates = []

@@ -1,0 +1,6 @@
+{
+  "timestamp": "2025-11-17T20:06:56.996056",
+  "total_rows": 81000,
+  "validation": {
+    "required_columns": true,
+    "no_null_merchants": 
